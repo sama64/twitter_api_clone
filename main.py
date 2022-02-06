@@ -56,10 +56,8 @@ class Tweet(BaseModel):
         min_length=1,
         max_length=280
         )
-    media: Optional[UploadFile] = File(default=None)
-    creator: UUID = Field(...)
+    creator: UserBase
     created_at: datetime = Field(default=datetime.today())
-    is_private: Optional[bool] = Field(default=False)
 
 #Path Operations
 ##Users
@@ -120,12 +118,10 @@ def logout():
     tags=["Users"]
     )
 def show_all_users():
-#    with open("users.json", "r+", encoding="utf-8") as f:
-#        results = json.loads(f.read())
-#        results = json.dumps(results)
+   with open("users.json", "r", encoding="utf-8") as f:
+       results = json.loads(f.read())
 
-#        return results
-    pass
+       return results
 
 ###Show a user
 @app.get(
@@ -194,7 +190,21 @@ def show_tweet():
 def post_tweet(
     tweet: Tweet = Body(...)
 ):
-    return tweet
+    with open("tweets.json", "r+", encoding="utf_8") as f:
+        results = json.loads(f.read())
+        tweet_dict = tweet.dict()
+
+        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+        tweet_dict["created_at"] = str(tweet_dict["created_at"])
+
+        tweet_dict["creator"]["user_id"] = str(tweet_dict["creator"]["user_id"])
+
+        results.append(tweet_dict)
+
+        f.seek(0)
+        f.write(json.dumps(results))
+
+        return tweet
 
 ###Update a tweet
 @app.put(
