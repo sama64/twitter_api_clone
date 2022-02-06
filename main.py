@@ -1,8 +1,10 @@
 #Python
+from encodings import utf_8
 from optparse import Option
 from uuid import UUID
 from datetime import date, datetime
 from typing import Optional, List
+import json
 
 #Pydantic
 from pydantic import BaseModel
@@ -17,8 +19,8 @@ from fastapi import status
 
 app = FastAPI()
 
-##Models
-#User
+#Models
+##User
 class UserBase(BaseModel):
     user_id: UUID = Field(...)
     email: EmailStr = Field(...)
@@ -43,7 +45,10 @@ class User(UserBase):
     )
     birth_date: Optional[date] = Field(default=None)
 
-#Tweets
+class UserRegister(User, UserLogin):
+    pass
+
+##Tweets
 class Tweet(BaseModel):
     tweet_id: UUID = Field(...)
     content: str = Field(
@@ -61,14 +66,28 @@ class Tweet(BaseModel):
 
 ###Register a user
 @app.post(
-    path='/user/create',
+    path='/signup',
     response_model=User,
     status_code=status.HTTP_201_CREATED,
     summary="Register a user",
     tags=["Users"]
     )
-def create_user():
-    pass
+def signup(
+    user: UserRegister = Body(...)
+    ):
+    with open("users.json", "r+", encoding="utf_8") as f:
+        results = json.loads(f.read())
+        user_dict = user.dict()
+
+        user_dict["user_id"] = str(user_dict["user_id"])
+        user_dict["birth_date"] = str(user_dict["birth_date"]) 
+
+        results.append(user_dict)
+
+        f.seek(0)
+        f.write(json.dumps(results))
+
+        return user
 
 ###Login a user
 @app.post(
@@ -101,7 +120,12 @@ def logout():
     tags=["Users"]
     )
 def show_all_users():
-   pass
+#    with open("users.json", "r+", encoding="utf-8") as f:
+#        results = json.loads(f.read())
+#        results = json.dumps(results)
+
+#        return results
+    pass
 
 ###Show a user
 @app.get(
