@@ -166,7 +166,10 @@ def update_user():
     tags=["Tweets"]
     )
 def show_all_tweets():
-    pass
+   with open("tweets.json", "r", encoding="utf-8") as f:
+       results = json.loads(f.read())
+
+       return results
 
 ###Show a tweet
 @app.get(
